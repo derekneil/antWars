@@ -50,6 +50,7 @@ public class AIprocessor163969 extends AIprocessor
 		Field[][] fields =  gameboard.getFields();
 		int centerX = fields.length/2;
 		int centerY = fields[centerX].length/2;
+		// System.out.println("centerX:"+centerX+" centerY:"+centerY);
 		
 		/*
 		 * Inside the loop the processor picks random coordinates of move {-1, 0 ,1}.
@@ -70,7 +71,7 @@ public class AIprocessor163969 extends AIprocessor
 		if(moveY ==  1) move = "S";
 		if(moveX == -1) move = "W";
 				
-		Ant ant = fields[centerX][centerY].getAnt();
+//		Ant ant = fields[centerX][centerY].getAnt();
 		sendMove(move);
 	}
 	

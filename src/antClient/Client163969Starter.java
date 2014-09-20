@@ -34,8 +34,9 @@ public class Client163969Starter
 			checkParameters(args[i]);
 		}
 		
-		//TODO: turn it off before subnission
-		name += ""+(new Double(Math.random()*1000).intValue());
+		name += "163969";
+		
+		System.out.println(name);
 		
 		AIprocessorRand processor = new AIprocessorRand();
 				
