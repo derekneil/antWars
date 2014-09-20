@@ -50,23 +50,48 @@ public class AIprocessor163969 extends AIprocessor
 		Field[][] fields =  gameboard.getFields();
 		int centerX = fields.length/2;
 		int centerY = fields[centerX].length/2;
-		 System.out.println("centerX:"+centerX+" centerY:"+centerY);
+		int me = fields[centerX][centerY].getAntId();
 		
-//		assume starting in center of a larger area
+		System.out.println();
+		for(int i=0; i<fields[0].length; i++) {
+			System.out.print("|");
+			for(int j=0; j<fields.length; j++) {
+				String out = "_";
+				int type = fields[j][i].getType();
+				if (type==0 && fields[j][i].hasFood()) { out = "F"; }
+				else if (type==1) { out = "X"; }
+				else if (type==2) {
+					if (fields[j][i].isDoorOpen()) { out = "O"; }
+					else out = "D";
+				}
+				int ant = fields[j][i].getAntId();
+				if (ant !=-1) { 
+					out = "*";
+					if (ant != me) { out = "A"; }
+				}
+				System.out.print(out);
+			}
+			System.out.println("|");
+		}
+		 
+		 
+		
+//		assume starting in center of a larger area????? 
 //		
-//		if current location had food
+//		if current location was a destination, remove it from destination graph
 //			scan field for food and other ant
 //				if food found 
 //					add food to graph of points we want to visit
-//			calculate shortest path to all food in graph
-//			if no path (not aware of any food)
-//				pick direction at random
-//				
-//			if other ant present....
-//			
-//				if health higher, try to eat him
-//					if distance is....
-//				if health lower
+//		 		if other ant
+//		 			...
+//		 	if destinationgraph not empty
+//				calculate shortest path to all food in graph
+//		 		select first node on shortest path as next destination
+//		 		select move to get us to destination
+//			else
+//		 		continue in same direction as before
+//		 		if field type in same direciton !=0
+//				pick direction at random.... ??
 //				
 //			sendMove(move);
 		
@@ -89,7 +114,6 @@ public class AIprocessor163969 extends AIprocessor
 //		if(moveY ==  1) move = "S";
 //		if(moveX == -1) move = "W";
 //				
-//		Ant ant = fields[centerX][centerY].getAnt();
 		sendMove(move);
 	}
 	
