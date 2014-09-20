@@ -25,7 +25,7 @@ public class Client163969Starter
 	 * and turn off the random number generator below
 	 */
 	
-	static String name = "ant";
+	final static String name = "ant163969";
 	
 	public static void main(String[] args)
 	{
@@ -33,8 +33,6 @@ public class Client163969Starter
 		{
 			checkParameters(args[i]);
 		}
-		
-		name += "163969";
 		
 		AIprocessor163969 processor = new AIprocessor163969();
 				
