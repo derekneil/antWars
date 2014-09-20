@@ -50,7 +50,25 @@ public class AIprocessor163969 extends AIprocessor
 		Field[][] fields =  gameboard.getFields();
 		int centerX = fields.length/2;
 		int centerY = fields[centerX].length/2;
-		// System.out.println("centerX:"+centerX+" centerY:"+centerY);
+		 System.out.println("centerX:"+centerX+" centerY:"+centerY);
+		
+//		assume starting in center of a larger area
+//		
+//		if current location had food
+//			scan field for food and other ant
+//				if food found 
+//					add food to graph of points we want to visit
+//			calculate shortest path to all food in graph
+//			if no path (not aware of any food)
+//				pick direction at random
+//				
+//			if other ant present....
+//			
+//				if health higher, try to eat him
+//					if distance is....
+//				if health lower
+//				
+//			sendMove(move);
 		
 		/*
 		 * Inside the loop the processor picks random coordinates of move {-1, 0 ,1}.
@@ -58,19 +76,19 @@ public class AIprocessor163969 extends AIprocessor
 		 * or when the new field is not movable (e.g., it is a wall field)
 		 */
 		
-		while(moveX*moveX  + moveY*moveY != 1 || !gameboard.isMoveable(centerX+moveX, centerY+moveY))
-		{
-			moveX = new Double(Math.random()*3).intValue()-1;
-			moveY = new Double(Math.random()*3).intValue()-1;
-		}
+//		while(moveX*moveX  + moveY*moveY != 1 || !gameboard.isMoveable(centerX+moveX, centerY+moveY))
+//		{
+//			moveX = new Double(Math.random()*3).intValue()-1;
+//			moveY = new Double(Math.random()*3).intValue()-1;
+//		}
 				
-		String move = "";
+		String move = "N"; //was ""
 		
-		if(moveY == -1) move = "N";
-		if(moveX ==  1) move = "E";
-		if(moveY ==  1) move = "S";
-		if(moveX == -1) move = "W";
-				
+//		if(moveY == -1) move = "N";
+//		if(moveX ==  1) move = "E";
+//		if(moveY ==  1) move = "S";
+//		if(moveX == -1) move = "W";
+//				
 //		Ant ant = fields[centerX][centerY].getAnt();
 		sendMove(move);
 	}
