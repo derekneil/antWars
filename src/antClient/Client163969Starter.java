@@ -18,7 +18,7 @@ import visualization.ClientFrame;
  * 
  */
 
-public class ClientRandStarter
+public class Client163969Starter
 {
 	/**
 	 * Before submission please change the name of your ant to antXXXXXX, where XXXXXX is the last six digits of your Dal ID

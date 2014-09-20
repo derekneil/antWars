@@ -19,7 +19,7 @@ import gameboard.GlobalGameboard;
   *
  */
 
-public class AIprocessorRand extends AIprocessor
+public class AIprocessor163969 extends AIprocessor
 {
 	public void startGameSignal(int position)
 	{
