@@ -36,9 +36,7 @@ public class Client163969Starter
 		
 		name += "163969";
 		
-		System.out.println(name);
-		
-		AIprocessorRand processor = new AIprocessorRand();
+		AIprocessor163969 processor = new AIprocessor163969();
 				
 		ClientCommunicationInterface communicator = new ClientCommunicationInterface(name, processor);
 		communicator.start();
