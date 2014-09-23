@@ -273,7 +273,7 @@ public class AIprocessor163969 extends AIprocessor
 		int moveX = 0;
 		int moveY = 0;
 			
-		do {
+		while (!goodMove && tries < 3) {
 			moveX = moveY = 0;
 			tries++;
 			
@@ -343,7 +343,7 @@ public class AIprocessor163969 extends AIprocessor
 				}
 			}
 
-		} while (!goodMove && tries < 3); //check move
+		}
 		
 		if(moveY == -1) nextMove = "N";
 		if(moveX ==  1) nextMove = "E";
