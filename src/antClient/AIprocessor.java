@@ -69,7 +69,12 @@ public abstract class AIprocessor
 	/**
 	 * Wraps the move in XML tags. This function should be called when the decision about the move is done by the player
 	 * 
-	 * @param move	there are five available moves up <code>N</code>, right <code>E</code>, down <code>S</code>, left <code>W</code> and stay <code>stay</code>
+	 * @param move	there are five available moves 
+	 * up <code>N</code>, 
+	 * right <code>E</code>, 
+	 * down <code>S</code>, 
+	 * left <code>W</code> and 
+	 * stay <code>stay</code>
 	 */	
 	protected void sendMove(String move)
 	{
