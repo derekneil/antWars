@@ -334,10 +334,11 @@ public class AIprocessor163969 extends AIprocessor
 			//do we need to avoid another ant?
 			if (avoidOtherAnt) {
 				//moveWillMakeOtherAntAdjacent?
-				int distToOtherAntX = Math.abs(meX-otherAntX);
-				int distToOtherAntY = Math.abs(meY-otherAntX);
-				int distToOtherAnt = distToOtherAntX + distToOtherAntY;
-				if (distToOtherAnt < 2) {
+				int absDistX=Math.abs(meX-otherAntX);
+				int absDistY=Math.abs(meY-otherAntX);
+				absDistX = (meX<otherAntX)? absDistX-moveX : absDistX+moveX;
+				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
+				if (absDistX+absDistY < 2) {
 					goodMove = false;
 				}
 			}
