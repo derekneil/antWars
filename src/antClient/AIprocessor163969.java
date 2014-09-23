@@ -102,6 +102,7 @@ public class AIprocessor163969 extends AIprocessor
 		else if (move.equals("E")) { meX++; }
 		else if (move.equals("S")) { meY++; }
 		else if (move.equals("W")) { meX--; }
+		direction = move;
 	}
 
 	/** 
@@ -138,7 +139,7 @@ public class AIprocessor163969 extends AIprocessor
 					otherAntX = otherAntInField? x:99;
 					otherAntY = otherAntInField? y:99;
 					otherAntIsAdjacent = (otherAntInField && absDistToXY<2)? true:false;
-					if (otherAntInField && otherAntIsAdjacent) {
+					if (otherAntIsAdjacent) {
 						//intentional lack of distToXY < distToDest condition
 						distToDest = absDistToXY; //this should be 1
 						distToDestX = absDistToX;
@@ -285,7 +286,6 @@ public class AIprocessor163969 extends AIprocessor
 			else { 
 				//XXX bias direction if one will expose more unknown fields
 				if (distToDestX==distToDestY) {
-					
 					if(tries==1) {
 						moveX = (destX-meX >0)? 1:-1;
 					}
@@ -494,7 +494,7 @@ public class AIprocessor163969 extends AIprocessor
 		String move = nextMoveToDest(gameboard);
 		
 		//do move
-		direction = move;
+
 		updateMe(move);
 		sendMove(move);
 	}
