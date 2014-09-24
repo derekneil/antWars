@@ -56,7 +56,7 @@ public class AIprocessor163969 extends AIprocessor
 	
 	// Game state information -------------------------------------------------
 	
-	private final boolean DEBUG = true;
+	private final boolean DEBUG = false;
 	
 	private final int UNKNOWN = -1;
 	private final int FLOOR = 0;
@@ -193,6 +193,7 @@ public class AIprocessor163969 extends AIprocessor
 				
 				//walls, and doors are already well defined
 				if (content == DOOR) {
+					//remember the door we came in through
 					if (board[x][y]==DOORUSED) {
 						content = DOORUSED;
 					}
