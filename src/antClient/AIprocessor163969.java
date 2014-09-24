@@ -27,7 +27,7 @@ public class AIprocessor163969 extends AIprocessor
 		
 		/** Reset game state information */
 		clearBoard();
-		board[8][8] = ME;
+		board[boardCenter][boardCenter] = ME;
 		direction = "";
 		
 		boardHasUnseen = true;
@@ -86,7 +86,6 @@ public class AIprocessor163969 extends AIprocessor
 	
 	private String direction = "";    //really this is just the last move
 	private int foodEaten = 0;
-	private int estimatedFood = 0;
 
 	private int meX = boardCenter;
 	private int meY = boardCenter;
@@ -167,7 +166,6 @@ public class AIprocessor163969 extends AIprocessor
 					if (fields[j][i].hasFood()) {
 						foodInFields = true;
 						content = FOOD;
-						//update location of closest food
 						//this will favor first item seen to break ties
 						if (absDistToXY < distToDest) {
 							distToDest  = absDistToXY;
@@ -194,7 +192,7 @@ public class AIprocessor163969 extends AIprocessor
 						foodEaten++;   //TODO double check this actually works
 					}
 				}
-				board[x][y] = content; //FIXME ArrayIndexOutOfBoundsException
+				board[x][y] = content;
 				
 			}
 		}
@@ -330,14 +328,14 @@ public class AIprocessor163969 extends AIprocessor
 				}
 				else if (distToDestY > distToDestX) {
 					if(tries==1) {
-						moveX = (destY-meY >0)? 1:-1;
+						moveY = (destY-meY >0)? 1:-1;
 					}
 					else if (tries==2) {
-						moveY = (destX-meX >0)? 1:-1;
+						moveX = (destX-meX >0)? 1:-1;
 					}
 					else if (tries==3) {
 						// try going ortho to destination
-						moveY = (destX-meX >0)? -1:1; //reversed 1:-1
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
 					}
 				}
 			}
@@ -504,7 +502,6 @@ public class AIprocessor163969 extends AIprocessor
 		String move = nextMoveToDest(gameboard);
 		
 		//do move
-
 		updateMe(move);
 		sendMove(move);
 	}
