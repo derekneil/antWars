@@ -225,8 +225,9 @@ public class AIprocessor163969 extends AIprocessor
 	 */
 	private void scanBoard() {
 		boardHasUneaten = boardHasUnseen = false;
-		int start = boardBuffer;
-		int end = boardBuffer + boardSize + 1;
+		final int start = boardBuffer;
+		final int end = boardBuffer + boardSize;
+		System.out.println("scanBoard() start(3):"+start+" end(14):"+end);
 		for(int i=start; i<end; i++) { //scan within perimeter of walls and doors
 			for(int j=start; j<end; j++) {
 				
@@ -258,7 +259,7 @@ public class AIprocessor163969 extends AIprocessor
 						destX       = x;
 						destY       = y;
 						//DEBUG ONLY --------------------------------------------------
-						System.out.println("UNKNOWN || FOOD destX:"+destX+" destY:"+destY);
+						System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY);
 					}
 				}
 			}
@@ -480,7 +481,7 @@ public class AIprocessor163969 extends AIprocessor
 				else if (type == FOOD) { out = "F"; }
 				else if (type == WALL) { out = "X"; }
 				else if (type == DOOR) { out = "D"; }
-				else if (type == DOOROPEN) { out = "D"; }
+				else if (type == DOOROPEN) { out = "O"; }
 				else if (type == DOORUSED) { out = "U"; }
 				else if (type == OTHERANT) { out = "A"; }
 				else if (type == ME) { out = "*"; }
