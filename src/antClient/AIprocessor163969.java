@@ -56,6 +56,8 @@ public class AIprocessor163969 extends AIprocessor
 	
 	// Game state information -------------------------------------------------
 	
+	private final boolean DEBUG = false;
+	
 	private final int UNKNOWN = -1;
 	private final int FLOOR = 0;
 	private final int WALL = 1;
@@ -103,9 +105,7 @@ public class AIprocessor163969 extends AIprocessor
 	 * update meX and meY coordinates based on move being made
 	 */
 	private void updateMe(String move) {
-		//DEBUG ONLY --------------------------------------------------
-		System.out.println("moved from meX:"+meX+" meY:"+meY);
-		
+		if (DEBUG) { System.out.println("moved from meX:"+meX+" meY:"+meY); }
 		// remember, meX and meY are indexes into 2D array
 		// going N (up) means decrement meY
 		// going S (down) means increment meY
@@ -114,9 +114,8 @@ public class AIprocessor163969 extends AIprocessor
 		else if (move.equals("S")) { meY++; }
 		else if (move.equals("W")) { meX--; }
 		direction = move;
-		
-		//DEBUG ONLY --------------------------------------------------
-		System.out.println("moved to meX:"+meX+" meY:"+meY);
+
+		if (DEBUG) { System.out.println("moved to meX:"+meX+" meY:"+meY); }
 	}
 
 	/** 
@@ -163,8 +162,7 @@ public class AIprocessor163969 extends AIprocessor
 							distToDestY = absDistToY;
 							destX       = x;
 							destY       = y;
-							//DEBUG ONLY --------------------------------------------------
-							System.out.println("OTHERANT destX:"+destX+" destY:"+destY);
+							if (DEBUG) { System.out.println("OTHERANT destX:"+destX+" destY:"+destY); }
 							
 						}
 						else if (absDistToXY<3) {
@@ -182,8 +180,7 @@ public class AIprocessor163969 extends AIprocessor
 							distToDestY = absDistToY;
 							destX       = x;
 							destY       = y;
-							//DEBUG ONLY --------------------------------------------------
-							System.out.println("FOOD destX:"+destX+" destY:"+destY);
+							if (DEBUG) { System.out.println("FOOD destX:"+destX+" destY:"+destY); }
 						}
 					}
 				}
@@ -198,8 +195,7 @@ public class AIprocessor163969 extends AIprocessor
 					}
 					if (absDistToXY==0) {
 						inDoorway = true;
-						//DEBUG ONLY --------------------------------------------------
-						System.out.println("inDoorway");
+						if (DEBUG) { System.out.println("inDoorway"); }
 					}
 				}
 				if (absDistToXY == 0) {
@@ -225,7 +221,6 @@ public class AIprocessor163969 extends AIprocessor
 		boardHasUneaten = boardHasUnseen = false;
 		final int start = boardBuffer;
 		final int end = boardBuffer + boardSize;
-		System.out.println("scanBoard() start(3):"+start+" end(14):"+end);
 		for(int i=start; i<end; i++) { //scan within perimeter of walls and doors
 			for(int j=start; j<end; j++) {
 				
@@ -256,8 +251,7 @@ public class AIprocessor163969 extends AIprocessor
 						distToDestY = absDistToY;
 						destX       = x;
 						destY       = y;
-						//DEBUG ONLY --------------------------------------------------
-						System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY);
+						if (DEBUG) { System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY); }
 					}
 				}
 			}
@@ -291,8 +285,7 @@ public class AIprocessor163969 extends AIprocessor
 					distToDestY = absDistToY;
 					destX       = x;
 					destY       = y;
-					//DEBUG ONLY --------------------------------------------------
-					System.out.println("UNKNOWN || DOOR destX:"+destX+" destY:"+destY);
+					if (DEBUG) { System.out.println("UNKNOWN || DOOR destX:"+destX+" destY:"+destY); }
 				}
 			}
 		}
@@ -366,12 +359,10 @@ public class AIprocessor163969 extends AIprocessor
 			//are there walls in the way?
 			if( gameboard.isMoveable(centerX+moveX, centerY+moveY)) {
 				goodMove = true;
-				//DEBUG ONLY --------------------------------------------------
-				System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY);
+				if (DEBUG) { System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY); }
 			}
 			else {
-				//DEBUG ONLY --------------------------------------------------
-				System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY);
+				if (DEBUG) { System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY); }
 			}
 			
 			//do we need to avoid another ant?
@@ -383,12 +374,10 @@ public class AIprocessor163969 extends AIprocessor
 				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
 				if (absDistX+absDistY < 2) {
 					goodMove = false;
-					//DEBUG ONLY --------------------------------------------------
-					System.out.println("avoidOtherAnt goodMove = false");
+					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = false"); }
 				}
 				else {
-					//DEBUG ONLY --------------------------------------------------
-					System.out.println("avoidOtherAnt goodMove = true");
+					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = true"); }
 				}
 			}
 
@@ -401,8 +390,7 @@ public class AIprocessor163969 extends AIprocessor
 			if(moveX == -1) nextMove = "W";
 		}
 		
-		//DEBUG ONLY --------------------------------------------------
-		System.out.println("nextMove: "+nextMove);
+		if (DEBUG) { System.out.println("nextMove: "+nextMove); }
 		
 		return nextMove;
 	}
@@ -441,8 +429,7 @@ public class AIprocessor163969 extends AIprocessor
 			meX=doorLoc2-1; meY=boardCenter;
 		}
 		board[meX][meY] = ME;
-		//DEBUG ONLY --------------------------------------------------
-		System.out.println("markDoorICameThroughAndPlaceMe meX:"+meX+" meY:"+meY);
+		if (DEBUG) { System.out.println("markDoorICameThroughAndPlaceMe meX:"+meX+" meY:"+meY); }
 	}
 	
 	//DEBUG ONLY --------------------------------------------------------------
@@ -507,21 +494,23 @@ public class AIprocessor163969 extends AIprocessor
 	{
 		Field[][] fields =  gameboard.getFields();
 
-		System.out.println("\n---- turn " + turn++ +"--------");
-		printFields(fields); //DEBUG ONLY -------------------------------------
+		if (DEBUG) { 
+			System.out.println("\n---- turn " + turn++ +"--------");
+			printFields(fields);
+		}
 
 		//reset destination information, "direction" variable remembers the last state
 		distToDest = distToDestX = distToDestY = destX = destY = 99;
 		
 		updateBoard(fields); //update inDoorway, foodInFields, OtherAntInField and isOtherAntAdjacent
 		
-		printBoard(); //DEBUG ONLY --------------------------------------------
+		if (DEBUG) { printBoard(); }
 		
 		if (inDoorway) {
 			
 			clearBoard();
 			markDoorICameThroughAndPlaceMe(direction);
-			printBoard(); //DEBUG ONLY --------------------------------------------
+			if (DEBUG) { printBoard(); }
 			sendMove(direction);
 			return;
 		}
