@@ -129,6 +129,11 @@ public class AIprocessor163969 extends AIprocessor
 		inDoorway = false;
 		foodInFields = false;
 		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
+		
+		//clear location of otherAnt since scanBoard may not run for a while
+		if (otherAntX<99 && otherAntY<99) {
+			board[otherAntX][otherAntY] = FLOOR;
+		}
 		otherAntX = otherAntY = 99;
 		
 		for(int i=0; i<fields[0].length; i++) {
@@ -149,6 +154,7 @@ public class AIprocessor163969 extends AIprocessor
 						otherAntInField = true;
 						otherAntX = x;
 						otherAntY = y;
+						if (DEBUG) { System.out.println("OTHERANT otherAntX:"+otherAntX+" otherAntY:"+otherAntY); }
 						// |43234|
 						// |32123| //danger urgency
 						// |21*12| // eat anything in 1
@@ -187,6 +193,7 @@ public class AIprocessor163969 extends AIprocessor
 				
 				//walls, and doors are already well defined
 				if (content == DOOR) {
+					//remember the door we came in through
 					if (board[x][y]==DOORUSED) {
 						content = DOORUSED;
 					}
@@ -231,12 +238,6 @@ public class AIprocessor163969 extends AIprocessor
 				int x = meX+distToX;
 				int y = meY+distToY;
 				
-				if (absDistToX>fieldRadius && absDistToY>fieldRadius) { //scan outside of field
-					if(content == OTHERANT) {
-						board[j][i] = FLOOR;
-					}
-				}
-				
 				if (content == UNKNOWN) {
 					boardHasUnseen = true;
 				}
@@ -251,7 +252,7 @@ public class AIprocessor163969 extends AIprocessor
 						distToDestY = absDistToY;
 						destX       = x;
 						destY       = y;
-						if (DEBUG) { System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY); }
+						if (DEBUG) { System.out.println("UNKNOWN || FOOD destX:"+destX+" destY:"+destY); }
 					}
 				}
 			}
@@ -308,7 +309,7 @@ public class AIprocessor163969 extends AIprocessor
 		int moveX = 0;
 		int moveY = 0;
 			
-		while (!goodMove && tries < 3) {
+		while (!goodMove && tries < 4) {
 			moveX = moveY = 0;
 			tries++;
 			
@@ -327,7 +328,12 @@ public class AIprocessor163969 extends AIprocessor
 						moveY = (destY-meY >0)? 1:-1;
 					}
 					else if (tries==3) {
-						//must be an ant close by, just stay put
+						// try going ortho to destination
+						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
+					}
+					else if(tries==4) {
+						// try going backwards
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
 					}
 				}
 				else if (distToDestX > distToDestY) {
@@ -341,6 +347,10 @@ public class AIprocessor163969 extends AIprocessor
 						// try going ortho to destination
 						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
 					}
+					else if(tries==4) {
+						// try going backwards
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
+					}
 				}
 				else if (distToDestY > distToDestX) {
 					if(tries==1) {
@@ -353,13 +363,17 @@ public class AIprocessor163969 extends AIprocessor
 						// try going ortho to destination
 						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
 					}
+					else if (tries==4) {
+						// try going backwards
+						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
+					}
 				}
 			}
 			
 			//are there walls in the way?
 			if( gameboard.isMoveable(centerX+moveX, centerY+moveY)) {
 				goodMove = true;
-				if (DEBUG) { System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY); }
+				if (DEBUG) { System.out.println("isMoveable moveX:" + moveX + " moveY:" + moveY); }
 			}
 			else {
 				if (DEBUG) { System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY); }
@@ -369,9 +383,10 @@ public class AIprocessor163969 extends AIprocessor
 			if (goodMove && avoidOtherAnt) {
 				// will Move Make Other Ant Adjacent?
 				int absDistX=Math.abs(meX-otherAntX);
-				int absDistY=Math.abs(meY-otherAntX);
-				absDistX = (meX<otherAntX)? absDistX-moveX : absDistX+moveX;
-				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
+				int absDistY=Math.abs(meY-otherAntY);
+				absDistX = (meX<otherAntX)? Math.abs(absDistX-moveX) : Math.abs(absDistX+moveX);
+				absDistY = (meY<otherAntY)? Math.abs(absDistY-moveY) : Math.abs(absDistY+moveY);
+				if (DEBUG) { System.out.println("avoidOtherAnt absDistX:"+absDistX+" absDistY:"+absDistY); }
 				if (absDistX+absDistY < 2) {
 					goodMove = false;
 					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = false"); }
