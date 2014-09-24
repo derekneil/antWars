@@ -251,7 +251,7 @@ public class AIprocessor163969 extends AIprocessor
 						distToDestY = absDistToY;
 						destX       = x;
 						destY       = y;
-						if (DEBUG) { System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY); }
+						if (DEBUG) { System.out.println("UNKNOWN || FOOD destX:"+destX+" destY:"+destY); }
 					}
 				}
 			}
@@ -308,7 +308,7 @@ public class AIprocessor163969 extends AIprocessor
 		int moveX = 0;
 		int moveY = 0;
 			
-		while (!goodMove && tries < 3) {
+		while (!goodMove && tries < 4) {
 			moveX = moveY = 0;
 			tries++;
 			
@@ -327,7 +327,12 @@ public class AIprocessor163969 extends AIprocessor
 						moveY = (destY-meY >0)? 1:-1;
 					}
 					else if (tries==3) {
-						//must be an ant close by, just stay put
+						// try going ortho to destination
+						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
+					}
+					else if(tries==4) {
+						// try going backwards
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
 					}
 				}
 				else if (distToDestX > distToDestY) {
@@ -341,6 +346,10 @@ public class AIprocessor163969 extends AIprocessor
 						// try going ortho to destination
 						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
 					}
+					else if(tries==4) {
+						// try going backwards
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
+					}
 				}
 				else if (distToDestY > distToDestX) {
 					if(tries==1) {
@@ -352,6 +361,10 @@ public class AIprocessor163969 extends AIprocessor
 					else if (tries==3) {
 						// try going ortho to destination
 						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
+					}
+					else if (tries==4) {
+						// try going backwards
+						moveY = (destY-meY >0)? -1:1; //reversed 1:-1
 					}
 				}
 			}
