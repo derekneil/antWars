@@ -104,8 +104,6 @@ public class AIprocessor163969 extends AIprocessor
 	 */
 	private void updateMe(String move) {
 		//DEBUG ONLY --------------------------------------------------
-		System.out.println("move: "+move);
-		System.out.println("moved from destX:"+destX+" destY:"+destY);
 		System.out.println("moved from meX:"+meX+" meY:"+meY);
 		
 		// remember, meX and meY are indexes into 2D array
@@ -378,7 +376,7 @@ public class AIprocessor163969 extends AIprocessor
 			}
 			
 			//do we need to avoid another ant?
-			if (avoidOtherAnt) {
+			if (goodMove && avoidOtherAnt) {
 				// will Move Make Other Ant Adjacent?
 				int absDistX=Math.abs(meX-otherAntX);
 				int absDistY=Math.abs(meY-otherAntX);
@@ -397,10 +395,12 @@ public class AIprocessor163969 extends AIprocessor
 
 		}
 		
-		if(moveY == -1) nextMove = "N";
-		if(moveX ==  1) nextMove = "E";
-		if(moveY ==  1) nextMove = "S";
-		if(moveX == -1) nextMove = "W";
+		if (goodMove) {
+			if(moveY == -1) nextMove = "N";
+			if(moveX ==  1) nextMove = "E";
+			if(moveY ==  1) nextMove = "S";
+			if(moveX == -1) nextMove = "W";
+		}
 		
 		//DEBUG ONLY --------------------------------------------------
 		System.out.println("nextMove: "+nextMove);
@@ -532,7 +532,6 @@ public class AIprocessor163969 extends AIprocessor
 
 		else {
 			scanBoard();
-			printBoard(); //DEBUG ONLY ----------------------------------------
 			
 			if (!boardHasUnseen && !boardHasUneaten) {
 				findClosestDoor(DOOR);
