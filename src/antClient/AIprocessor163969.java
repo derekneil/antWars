@@ -260,9 +260,10 @@ public class AIprocessor163969 extends AIprocessor
 
 		for (int i=0; i<possibleDoors.length; i++) {
 			if (possibleDoors[i][0] == target) {
+				if (target==UNKNOWN) { boardHasUnseen = true; }
 				int x = possibleDoors[i][1];
 				int y = possibleDoors[i][2];
-				int absDistToX = Math.abs(x), absDistToY = Math.abs(y);
+				int absDistToX = Math.abs(x-meX), absDistToY = Math.abs(y-meY);
 				int absDistToXY = absDistToX + absDistToY;
 				if (absDistToXY < distToDest) {
 					distToDest  = absDistToXY;
