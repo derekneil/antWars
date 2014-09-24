@@ -180,7 +180,7 @@ public class AIprocessor163969 extends AIprocessor
 						foodEaten++;   //TODO double check this actually works
 					}
 				}
-				board[x][y] = content;
+				board[x][y] = content; //FIXME ArrayIndexOutOfBoundsException
 				
 			}
 		}
@@ -214,7 +214,7 @@ public class AIprocessor163969 extends AIprocessor
 				else if (content == FOOD) {
 					boardHasUneaten = true;
 				}
-				if (boardHasUnseen || boardHasUneaten) {
+				if (content == UNKNOWN || content == FOOD) {
 					//if it's closer then the last one we saw
 					if (absDistToXY < distToDest) { 
 						distToDest  = absDistToXY;
