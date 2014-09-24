@@ -6,8 +6,10 @@ import gameboard.Gameboard;
 import gameboard.GlobalGameboard;
 
 /**
- * Implementation of Rand player - a sample automatic AntWars player. The Rand player makes in each round a random move,
- * uniformly choosing from a list of currently available moves. 
+ * Implementation of AI player - skeleton code based on Marek's automatic Rand AntWars player.
+ * 
+ * @author Derek Neil || dneil@cs.dal.ca || web.cs.dalca./~dneil/
+ * @version 2.0 || 2014-09-24
  * 
  * @author Marek Lipczak || lipczak@cs.dal.ca || www.cs.dal.ca/~lipczak/
  * @version 1.0 || 2009-02-10
@@ -16,6 +18,44 @@ import gameboard.GlobalGameboard;
 
  /*
   * Whenever you modify the code please describe your contribution here:
+  * 
+  * Added logic to prioritize (in order):
+  * - eating or avoiding other ants nearby based on proximity
+  * - getting closest food in field of view
+  * - exploring closest unknown area / returning to uneaten food
+  * - finding closest door to leave through
+  * 
+  * Other logic implemented includes:
+  * - remembering state of current quadrant of the board
+  * - remembering what door you entered a quadrant from
+  * - moving away from your intended destination if heading towards it fails
+  * 
+  * Problems:
+  * Doors were understood to operate on a random %10 probability of changing state
+  * meaning that tracking their state was of little use, since we only need the door
+  * to be open for two consecutive states. 
+  * 
+  * Starting positions, first door taken, and actual distribution of food.
+  * If two ants start in adjacent quadrants, eat all the food in their quadrant, then leave, 
+  * depending on what door they exit through, with respect to the other player, could determine 
+  * the winner of the game (assuming one,ant doesn't eat the other before all the food is gone).
+  * This is because if ant 1 eats all it's food, then enters the quadrant ant 2 just finished eating 
+  * all the food in (and just left), by the time ant 1 realizes there's no food in the quadrant, 
+  * ant 2 will likely have already completed eating all the food in it's second quadrant, putting 
+  * ant 2 one quadrant of food ahead of ant 1. 
+  * Furthermore, even if ant 1 immediately took the shortest route to the last possible remaining 
+  * quadrant, by the time it got there ant 2 would be nearly done eating all the food in that quadrant.
+  * Since neither ant can known what quadrant the other is in, and it is a random startup variable, 
+  * having ants start in adjacent quadrants can only have two outcomes assuming both have equally efficient
+  * search algorithms and access to equal units of food:
+  * 1) the ant that doesn't go into the quadrant that was previously occupied by the other ant will win, 
+  * or 
+  * 2) if both ants don't go into the quadrant that was previously occupied by 
+  * the other ant, it will most likely be a draw
+  * 
+  * If the actual distribution of food favored one ant over the other, then that ant would win in case 2
+  * (ie: one ant had access to 21 items of food across the two quadrants it happened to visit, and the 
+  * other had access to 19 item of food across the two quadrants it visited).
   *
  */
 
@@ -293,7 +333,7 @@ public class AIprocessor163969 extends AIprocessor
 	}
 	
 	/**
-	 * figure next move to destX, destY
+	 * figure next move to destX, destY, check move against proximity to otherAnt
 	 */
 	private String nextMoveToDest(Gameboard gameboard) {
 		
