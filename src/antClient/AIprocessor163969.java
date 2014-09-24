@@ -190,25 +190,23 @@ public class AIprocessor163969 extends AIprocessor
 				
 				//walls, and doors are already well defined
 				if (content == DOOR) {
-					if (board[x][y]!=DOORUSED) {
-						if (fields[j][i].isDoorOpen()) {
-							content = DOOROPEN;
-						}
-						if (absDistToXY==0) {
-							inDoorway = true;
-							content = ME;
-							//DEBUG ONLY --------------------------------------------------
-							System.out.println("inDoorway");
-						}
+					if (board[x][y]==DOORUSED) {
+						content = DOORUSED;
+					}
+					else if (fields[j][i].isDoorOpen()) {
+						content = DOOROPEN;
+					}
+					if (absDistToXY==0) {
+						inDoorway = true;
+						//DEBUG ONLY --------------------------------------------------
+						System.out.println("inDoorway");
 					}
 				}
-				else if (absDistToXY == 0) {
+				if (absDistToXY == 0) {
 					content = ME;
 					int lastContent = board[x][y];
 					if (lastContent == FOOD) {
 						foodEaten++;
-						//DEBUG ONLY --------------------------------------------------
-						System.out.println("foodEaten++ == "+foodEaten);
 					}
 				}
 				board[x][y] = content;
@@ -218,7 +216,7 @@ public class AIprocessor163969 extends AIprocessor
 	}
 	
 	/**
-	 * scan within walls of quadrant (does not include walls or doors)
+	 * scan within walls of quadrant (does not include walls)
 	 * update boardHasUnseen, boardHasUneaten and set closest
 	 * distToDest, distToDestX, DistToDesty, destX and destY
 	 * also remove information about otherAnt out of field of view
@@ -442,6 +440,7 @@ public class AIprocessor163969 extends AIprocessor
 			board[doorLoc2][boardCenter] = DOORUSED;
 			meX=doorLoc2-1; meY=boardCenter;
 		}
+		board[meX][meY] = ME;
 		//DEBUG ONLY --------------------------------------------------
 		System.out.println("markDoorICameThroughAndPlaceMe meX:"+meX+" meY:"+meY);
 	}
@@ -522,7 +521,7 @@ public class AIprocessor163969 extends AIprocessor
 			
 			clearBoard();
 			markDoorICameThroughAndPlaceMe(direction);
-
+			printBoard(); //DEBUG ONLY --------------------------------------------
 			sendMove(direction);
 			return;
 		}
