@@ -27,7 +27,7 @@ public class AIprocessor163969 extends AIprocessor
 		
 		/** Reset game state information */
 		clearBoard();
-		board[7][7] = ME;
+		board[boardCenter][boardCenter] = ME;
 		direction = "";
 		
 		boardHasUnseen = true;
@@ -38,12 +38,14 @@ public class AIprocessor163969 extends AIprocessor
 		inDoorway          = false;
 		
 		foodEaten = 0;
-		destX = meX = 7;
-		destY = meY = 7;
+		destX = meX = boardCenter;
+		destY = meY = boardCenter;
 		distToDest = distToDestX = distToDestY = 0;
 		
 		otherAntX = 99;
 		otherAntY = 99;
+		
+		turn = 1;
 	}
 	
 	public void setCurrentPosition(String xmlPosition)
@@ -54,15 +56,24 @@ public class AIprocessor163969 extends AIprocessor
 	
 	// Game state information -------------------------------------------------
 	
+	private final boolean DEBUG = false;
+	
 	private final int UNKNOWN = -1;
 	private final int FLOOR = 0;
 	private final int WALL = 1;
 	private final int DOOR = 2;
 	private final int DOORUSED = 3;
-	private final int FOOD = 4;
+	private final int DOOROPEN = 4;
+	private final int FOOD = 5;
 	private final int OTHERANT = 8;
 	private final int ME = 9;
-	private int board[][] = new int[15][15];
+	private final int boardSize = 11;
+	private final int boardBuffer = 3;
+	private final int boardArraySize = boardSize+2*boardBuffer;
+	private final int boardCenter = (boardSize+2*boardBuffer)/2;
+	private final int fieldRadius = 2;
+	private int board[][] = new int[boardArraySize][boardArraySize];
+	private int turn = 1;
 	
 	private boolean boardHasUnseen = true;
 	private boolean boardHasUneaten = false;
@@ -78,10 +89,9 @@ public class AIprocessor163969 extends AIprocessor
 	
 	private String direction = "";    //really this is just the last move
 	private int foodEaten = 0;
-	private int estimatedFood = 0;
 
-	private int meX = 7;
-	private int meY = 7;
+	private int meX = boardCenter;
+	private int meY = boardCenter;
 	
 	private int destX = meX;
 	private int destY = meY;
@@ -95,6 +105,7 @@ public class AIprocessor163969 extends AIprocessor
 	 * update meX and meY coordinates based on move being made
 	 */
 	private void updateMe(String move) {
+		if (DEBUG) { System.out.println("moved from meX:"+meX+" meY:"+meY); }
 		// remember, meX and meY are indexes into 2D array
 		// going N (up) means decrement meY
 		// going S (down) means increment meY
@@ -102,6 +113,9 @@ public class AIprocessor163969 extends AIprocessor
 		else if (move.equals("E")) { meX++; }
 		else if (move.equals("S")) { meY++; }
 		else if (move.equals("W")) { meX--; }
+		direction = move;
+
+		if (DEBUG) { System.out.println("moved to meX:"+meX+" meY:"+meY); }
 	}
 
 	/** 
@@ -109,15 +123,19 @@ public class AIprocessor163969 extends AIprocessor
 	 * update inDoorway, foodInFields, OtherAntInField and isOtherAntAdjacent
 	 */
 	private void updateBoard(Field[][] fields) {
-		int centerX = fields.length/2;
-		int centerY = fields[centerX].length/2;
-		int myId = fields[centerX][centerY].getAntId();
+		int fieldCenterX = fields.length/2;
+		int fieldCenterY = fields[fieldCenterX].length/2;
+		int myId = fields[fieldCenterX][fieldCenterY].getAntId();
+		inDoorway = false;
+		foodInFields = false;
+		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
+		otherAntX = otherAntY = 99;
 		
 		for(int i=0; i<fields[0].length; i++) {
 			for(int j=0; j<fields.length; j++) {
 				
 				int content = fields[j][i].getType();
-				int distToX = j-centerX, distToY = i-centerY;
+				int distToX = j-fieldCenterX, distToY = i-fieldCenterY;
 				int absDistToX = Math.abs(distToX), absDistToY = Math.abs(distToY);
 				int absDistToXY = absDistToX + absDistToY;
 				int x = meX+distToX;
@@ -128,31 +146,33 @@ public class AIprocessor163969 extends AIprocessor
 					int antId = fields[j][i].getAntId();
 					if (antId !=-1 && antId != myId) {
 						content = OTHERANT;
+						otherAntInField = true;
+						otherAntX = x;
+						otherAntY = y;
+						// |43234|
+						// |32123| //danger urgency
+						// |21*12| // eat anything in 1
+						// |32123| // avoid going into 1 if 2 is another ant
+						// |43234|
+						if (absDistToXY<2) {
+							otherAntIsAdjacent = true;
+							//intentional lack of distToXY < distToDest condition
+							distToDest = absDistToXY; //this should be 1
+							distToDestX = absDistToX;
+							distToDestY = absDistToY;
+							destX       = x;
+							destY       = y;
+							if (DEBUG) { System.out.println("OTHERANT destX:"+destX+" destY:"+destY); }
+							
+						}
+						else if (absDistToXY<3) {
+							avoidOtherAnt = true;
+						}
 					}
-					// |43234|
-					// |32123| //danger urgency
-					// |21*12| // eat anything in 1
-					// |32123| // avoid going into 1 if 2 is another ant
-					// |43234|
-					otherAntInField = (content == OTHERANT)? true:false;
-					otherAntX = otherAntInField? x:99;
-					otherAntY = otherAntInField? y:99;
-					otherAntIsAdjacent = (otherAntInField && absDistToXY<2)? true:false;
-					if (otherAntInField && otherAntIsAdjacent) {
-						//intentional lack of distToXY < distToDest condition
-						distToDest = absDistToXY; //this should be 1
-						distToDestX = absDistToX;
-						distToDestY = absDistToY;
-						destX = x;
-						destY = y;
-						
-					}
-					avoidOtherAnt = (otherAntInField && absDistToXY<3)? true:false;
 					
 					if (fields[j][i].hasFood()) {
 						foodInFields = true;
 						content = FOOD;
-						//update location of closest food
 						//this will favor first item seen to break ties
 						if (absDistToXY < distToDest) {
 							distToDest  = absDistToXY;
@@ -160,23 +180,29 @@ public class AIprocessor163969 extends AIprocessor
 							distToDestY = absDistToY;
 							destX       = x;
 							destY       = y;
+							if (DEBUG) { System.out.println("FOOD destX:"+destX+" destY:"+destY); }
 						}
 					}
 				}
 				
 				//walls, and doors are already well defined
-				if (content == DOOR) { 
-					inDoorway = (absDistToXY==0)? true:false;
-					if (inDoorway) {
-						//we can't see anything, and we're about to exit the door and reset the board
-						return; 
+				if (content == DOOR) {
+					if (board[x][y]==DOORUSED) {
+						content = DOORUSED;
+					}
+					else if (fields[j][i].isDoorOpen()) {
+						content = DOOROPEN;
+					}
+					if (absDistToXY==0) {
+						inDoorway = true;
+						if (DEBUG) { System.out.println("inDoorway"); }
 					}
 				}
-				else if (absDistToXY == 0) {
+				if (absDistToXY == 0) {
 					content = ME;
 					int lastContent = board[x][y];
 					if (lastContent == FOOD) {
-						foodEaten++;   //TODO double check this actually works
+						foodEaten++;
 					}
 				}
 				board[x][y] = content;
@@ -186,22 +212,26 @@ public class AIprocessor163969 extends AIprocessor
 	}
 	
 	/**
-	 * scan within walls of quadrant (does not include walls or doors)
+	 * scan within walls of quadrant (does not include walls)
 	 * update boardHasUnseen, boardHasUneaten and set closest
 	 * distToDest, distToDestX, DistToDesty, destX and destY
 	 * also remove information about otherAnt out of field of view
 	 */
 	private void scanBoard() {
 		boardHasUneaten = boardHasUnseen = false;
-		for(int i=2; i<12; i++) { //scan within perimeter of walls and doors
-			for(int j=2; j<12; j++) { //XXX make this relative to arbitrary board size
+		final int start = boardBuffer;
+		final int end = boardBuffer + boardSize;
+		for(int i=start; i<end; i++) { //scan within perimeter of walls and doors
+			for(int j=start; j<end; j++) {
 				
 				int content = board[j][i];
 				int distToX = j-meX, distToY = i-meY;
 				int absDistToX = Math.abs(distToX), absDistToY = Math.abs(distToY);
 				int absDistToXY = absDistToX + absDistToY;
+				int x = meX+distToX;
+				int y = meY+distToY;
 				
-				if (absDistToX>2 && absDistToY>2) { //scan outside of field
+				if (absDistToX>fieldRadius && absDistToY>fieldRadius) { //scan outside of field
 					if(content == OTHERANT) {
 						board[j][i] = FLOOR;
 					}
@@ -213,14 +243,15 @@ public class AIprocessor163969 extends AIprocessor
 				else if (content == FOOD) {
 					boardHasUneaten = true;
 				}
-				if (boardHasUnseen || boardHasUneaten) {
+				if (content == UNKNOWN || content == FOOD) {
 					//if it's closer then the last one we saw
 					if (absDistToXY < distToDest) { 
 						distToDest  = absDistToXY;
 						distToDestX = absDistToX;
 						distToDestY = absDistToY;
-						destX       = meX+distToX;
-						destY       = meY+distToY;
+						destX       = x;
+						destY       = y;
+						if (DEBUG) { System.out.println("UNKNOWN || FOOD i:"+i+" j:"+j+" destX:"+destX+" destY:"+destY); }
 					}
 				}
 			}
@@ -234,16 +265,19 @@ public class AIprocessor163969 extends AIprocessor
 	 * set destination as closest door we didn't enter through
 	 */
 	private void findClosestDoor(final int target) {
-		int possibleDoors[][] = { 	{ board[7][13], 7, 13 }, 
-									{ board[1][7],  1,  7 }, 
-									{ board[7][1],  7,  1 }, 
-									{ board[13][7], 13, 7 } };
+		final int doorLoc = Math.max(boardBuffer-1, 0);
+		final int doorLoc2 = boardSize + boardBuffer;
+		int possibleDoors[][] = { 	{ board[boardCenter][doorLoc2], boardCenter, doorLoc2 }, 
+									{ board[doorLoc][boardCenter],  doorLoc,  boardCenter }, 
+									{ board[boardCenter][doorLoc],  boardCenter,  doorLoc }, 
+									{ board[doorLoc2][boardCenter], doorLoc2, boardCenter } };
 
 		for (int i=0; i<possibleDoors.length; i++) {
-			if (possibleDoors[i][0] == target) {
+			if (possibleDoors[i][0] == target || (target==DOOR)&&(DOOROPEN==possibleDoors[i][0]) ) {
+				if (target==UNKNOWN) { boardHasUnseen = true; }
 				int x = possibleDoors[i][1];
 				int y = possibleDoors[i][2];
-				int absDistToX = Math.abs(x), absDistToY = Math.abs(y);
+				int absDistToX = Math.abs(x-meX), absDistToY = Math.abs(y-meY);
 				int absDistToXY = absDistToX + absDistToY;
 				if (absDistToXY < distToDest) {
 					distToDest  = absDistToXY;
@@ -251,6 +285,7 @@ public class AIprocessor163969 extends AIprocessor
 					distToDestY = absDistToY;
 					destX       = x;
 					destY       = y;
+					if (DEBUG) { System.out.println("UNKNOWN || DOOR destX:"+destX+" destY:"+destY); }
 				}
 			}
 		}
@@ -273,7 +308,7 @@ public class AIprocessor163969 extends AIprocessor
 		int moveX = 0;
 		int moveY = 0;
 			
-		do {
+		while (!goodMove && tries < 3) {
 			moveX = moveY = 0;
 			tries++;
 			
@@ -285,7 +320,6 @@ public class AIprocessor163969 extends AIprocessor
 			else { 
 				//XXX bias direction if one will expose more unknown fields
 				if (distToDestX==distToDestY) {
-					
 					if(tries==1) {
 						moveX = (destX-meX >0)? 1:-1;
 					}
@@ -310,14 +344,14 @@ public class AIprocessor163969 extends AIprocessor
 				}
 				else if (distToDestY > distToDestX) {
 					if(tries==1) {
-						moveX = (destY-meY >0)? 1:-1;
+						moveY = (destY-meY >0)? 1:-1;
 					}
 					else if (tries==2) {
-						moveY = (destX-meX >0)? 1:-1;
+						moveX = (destX-meX >0)? 1:-1;
 					}
 					else if (tries==3) {
 						// try going ortho to destination
-						moveY = (destX-meX >0)? -1:1; //reversed 1:-1
+						moveX = (destX-meX >0)? -1:1; //reversed 1:-1
 					}
 				}
 			}
@@ -325,29 +359,38 @@ public class AIprocessor163969 extends AIprocessor
 			//are there walls in the way?
 			if( gameboard.isMoveable(centerX+moveX, centerY+moveY)) {
 				goodMove = true;
+				if (DEBUG) { System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY); }
 			}
 			else {
-				//DEBUG ONLY --------------------------------------------------
-				System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY);
+				if (DEBUG) { System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY); }
 			}
 			
 			//do we need to avoid another ant?
-			if (avoidOtherAnt) {
-				//moveWillMakeOtherAntAdjacent?
-				int distToOtherAntX = Math.abs(meX-otherAntX);
-				int distToOtherAntY = Math.abs(meY-otherAntX);
-				int distToOtherAnt = distToOtherAntX + distToOtherAntY;
-				if (distToOtherAnt < 2) {
+			if (goodMove && avoidOtherAnt) {
+				// will Move Make Other Ant Adjacent?
+				int absDistX=Math.abs(meX-otherAntX);
+				int absDistY=Math.abs(meY-otherAntX);
+				absDistX = (meX<otherAntX)? absDistX-moveX : absDistX+moveX;
+				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
+				if (absDistX+absDistY < 2) {
 					goodMove = false;
+					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = false"); }
+				}
+				else {
+					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = true"); }
 				}
 			}
 
-		} while (!goodMove && tries < 3); //check move
+		}
 		
-		if(moveY == -1) nextMove = "N";
-		if(moveX ==  1) nextMove = "E";
-		if(moveY ==  1) nextMove = "S";
-		if(moveX == -1) nextMove = "W";
+		if (goodMove) {
+			if(moveY == -1) nextMove = "N";
+			if(moveX ==  1) nextMove = "E";
+			if(moveY ==  1) nextMove = "S";
+			if(moveX == -1) nextMove = "W";
+		}
+		
+		if (DEBUG) { System.out.println("nextMove: "+nextMove); }
 		
 		return nextMove;
 	}
@@ -367,24 +410,26 @@ public class AIprocessor163969 extends AIprocessor
 	 * @param direction
 	 */
 	private void markDoorICameThroughAndPlaceMe(String direction) {
-		// XXX make this relative to arbirary board size
+		final int doorLoc = Math.max(boardBuffer-1, 0);
+		final int doorLoc2 = boardSize + boardBuffer;
 		if (direction.equals("N")) {
-			board[7][13] = DOORUSED;
-			meX=7; meY=12;
+			board[boardCenter][doorLoc2] = DOORUSED;
+			meX=boardCenter; meY=doorLoc2-1;
 		}
 		else if(direction.equals("E")) {
-			board[1][7] = DOORUSED;
-			meX=2; meY=7;
+			board[doorLoc][boardCenter] = DOORUSED;
+			meX=doorLoc+1; meY=boardCenter;
 		}
 		else if(direction.equals("S")) {
-			board[7][1] = DOORUSED;
-			meX=7; meY=2;
+			board[boardCenter][doorLoc] = DOORUSED;
+			meX=boardCenter; meY=doorLoc+1;
 		}
 		else if(direction.equals("W")) {
-			board[13][7] = DOORUSED;
-			meX=7; meY=12;
+			board[doorLoc2][boardCenter] = DOORUSED;
+			meX=doorLoc2-1; meY=boardCenter;
 		}
-		updateMe(direction);
+		board[meX][meY] = ME;
+		if (DEBUG) { System.out.println("markDoorICameThroughAndPlaceMe meX:"+meX+" meY:"+meY); }
 	}
 	
 	//DEBUG ONLY --------------------------------------------------------------
@@ -403,7 +448,7 @@ public class AIprocessor163969 extends AIprocessor
 				int ant = fields[j][i].getAntId();
 				if (ant !=-1) { 
 					out = "*";
-					if (ant != ME) { out = "A"; }
+					if (i!=2&&j!=2) { out = "A"; }
 				}
 				System.out.print(out);
 			}
@@ -422,6 +467,7 @@ public class AIprocessor163969 extends AIprocessor
 				else if (type == FOOD) { out = "F"; }
 				else if (type == WALL) { out = "X"; }
 				else if (type == DOOR) { out = "D"; }
+				else if (type == DOOROPEN) { out = "O"; }
 				else if (type == DOORUSED) { out = "U"; }
 				else if (type == OTHERANT) { out = "A"; }
 				else if (type == ME) { out = "*"; }
@@ -448,31 +494,23 @@ public class AIprocessor163969 extends AIprocessor
 	{
 		Field[][] fields =  gameboard.getFields();
 
-		printFields(fields); //DEBUG ONLY -------------------------------------
+		if (DEBUG) { 
+			System.out.println("\n---- turn " + turn++ +"--------");
+			printFields(fields);
+		}
 
 		//reset destination information, "direction" variable remembers the last state
 		distToDest = distToDestX = distToDestY = destX = destY = 99;
 		
 		updateBoard(fields); //update inDoorway, foodInFields, OtherAntInField and isOtherAntAdjacent
 		
-		printBoard(); //DEBUG ONLY --------------------------------------------
+		if (DEBUG) { printBoard(); }
 		
 		if (inDoorway) {
 			
 			clearBoard();
 			markDoorICameThroughAndPlaceMe(direction);
-			
-			boardHasUnseen = true;
-			
-			boardHasUneaten    = false;
-			foodInFields       = false;
-			
-			otherAntInField    = false;
-			otherAntIsAdjacent = false;
-			avoidOtherAnt      = false;
-			otherAntX = 99;
-			otherAntY = 99;
-			
+			if (DEBUG) { printBoard(); }
 			sendMove(direction);
 			return;
 		}
@@ -483,7 +521,6 @@ public class AIprocessor163969 extends AIprocessor
 
 		else {
 			scanBoard();
-			printBoard(); //DEBUG ONLY ----------------------------------------
 			
 			if (!boardHasUnseen && !boardHasUneaten) {
 				findClosestDoor(DOOR);
@@ -493,7 +530,6 @@ public class AIprocessor163969 extends AIprocessor
 		String move = nextMoveToDest(gameboard);
 		
 		//do move
-		direction = move;
 		updateMe(move);
 		sendMove(move);
 	}
