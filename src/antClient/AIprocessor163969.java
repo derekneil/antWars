@@ -56,7 +56,7 @@ public class AIprocessor163969 extends AIprocessor
 	
 	// Game state information -------------------------------------------------
 	
-	private final boolean DEBUG = false;
+	private final boolean DEBUG = true;
 	
 	private final int UNKNOWN = -1;
 	private final int FLOOR = 0;
@@ -129,6 +129,9 @@ public class AIprocessor163969 extends AIprocessor
 		inDoorway = false;
 		foodInFields = false;
 		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
+		
+		//clear location of otherAnt since scanBoard may not run for a while
+		board[otherAntX][otherAntY] = FLOOR;
 		otherAntX = otherAntY = 99;
 		
 		for(int i=0; i<fields[0].length; i++) {
@@ -230,12 +233,6 @@ public class AIprocessor163969 extends AIprocessor
 				int absDistToXY = absDistToX + absDistToY;
 				int x = meX+distToX;
 				int y = meY+distToY;
-				
-				if (absDistToX>fieldRadius && absDistToY>fieldRadius) { //scan outside of field
-					if(content == OTHERANT) {
-						board[j][i] = FLOOR;
-					}
-				}
 				
 				if (content == UNKNOWN) {
 					boardHasUnseen = true;
