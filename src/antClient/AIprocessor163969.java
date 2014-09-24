@@ -44,6 +44,8 @@ public class AIprocessor163969 extends AIprocessor
 		
 		otherAntX = 99;
 		otherAntY = 99;
+		
+		turn = 1;
 	}
 	
 	public void setCurrentPosition(String xmlPosition)
@@ -63,6 +65,7 @@ public class AIprocessor163969 extends AIprocessor
 	private final int OTHERANT = 8;
 	private final int ME = 9;
 	private int board[][] = new int[15][15];
+	private int turn = 1;
 	
 	private boolean boardHasUnseen = true;
 	private boolean boardHasUneaten = false;
@@ -113,6 +116,10 @@ public class AIprocessor163969 extends AIprocessor
 		int centerX = fields.length/2;
 		int centerY = fields[centerX].length/2;
 		int myId = fields[centerX][centerY].getAntId();
+		inDoorway = false;
+		foodInFields = false;
+		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
+		otherAntX = otherAntY = 99;
 		
 		for(int i=0; i<fields[0].length; i++) {
 			for(int j=0; j<fields.length; j++) {
@@ -129,26 +136,28 @@ public class AIprocessor163969 extends AIprocessor
 					int antId = fields[j][i].getAntId();
 					if (antId !=-1 && antId != myId) {
 						content = OTHERANT;
+						otherAntInField = true;
+						otherAntX = x;
+						otherAntY = y;
+						// |43234|
+						// |32123| //danger urgency
+						// |21*12| // eat anything in 1
+						// |32123| // avoid going into 1 if 2 is another ant
+						// |43234|
+						if (absDistToXY<2) {
+							otherAntIsAdjacent = true;
+							//intentional lack of distToXY < distToDest condition
+							distToDest = absDistToXY; //this should be 1
+							distToDestX = absDistToX;
+							distToDestY = absDistToY;
+							destX       = x;
+							destY       = y;
+							
+						}
+						else if (absDistToXY<3) {
+							avoidOtherAnt = true;
+						}
 					}
-					// |43234|
-					// |32123| //danger urgency
-					// |21*12| // eat anything in 1
-					// |32123| // avoid going into 1 if 2 is another ant
-					// |43234|
-					otherAntInField = (content == OTHERANT)? true:false;
-					otherAntX = otherAntInField? x:99;
-					otherAntY = otherAntInField? y:99;
-					otherAntIsAdjacent = (otherAntInField && absDistToXY<2)? true:false;
-					if (otherAntIsAdjacent) {
-						//intentional lack of distToXY < distToDest condition
-						distToDest = absDistToXY; //this should be 1
-						distToDestX = absDistToX;
-						distToDestY = absDistToY;
-						destX = x;
-						destY = y;
-						
-					}
-					avoidOtherAnt = (otherAntInField && absDistToXY<3)? true:false;
 					
 					if (fields[j][i].hasFood()) {
 						foodInFields = true;
@@ -167,8 +176,8 @@ public class AIprocessor163969 extends AIprocessor
 				
 				//walls, and doors are already well defined
 				if (content == DOOR) { 
-					inDoorway = (absDistToXY==0)? true:false;
-					if (inDoorway) {
+					if (absDistToXY==0) {
+						inDoorway = true;
 						//we can't see anything, and we're about to exit the door and reset the board
 						return; 
 					}
@@ -201,6 +210,8 @@ public class AIprocessor163969 extends AIprocessor
 				int distToX = j-meX, distToY = i-meY;
 				int absDistToX = Math.abs(distToX), absDistToY = Math.abs(distToY);
 				int absDistToXY = absDistToX + absDistToY;
+				int x = meX+distToX;
+				int y = meY+distToY;
 				
 				if (absDistToX>2 && absDistToY>2) { //scan outside of field
 					if(content == OTHERANT) {
@@ -220,8 +231,8 @@ public class AIprocessor163969 extends AIprocessor
 						distToDest  = absDistToXY;
 						distToDestX = absDistToX;
 						distToDestY = absDistToY;
-						destX       = meX+distToX;
-						destY       = meY+distToY;
+						destX       = x;
+						destY       = y;
 					}
 				}
 			}
@@ -333,7 +344,7 @@ public class AIprocessor163969 extends AIprocessor
 			
 			//do we need to avoid another ant?
 			if (avoidOtherAnt) {
-				//moveWillMakeOtherAntAdjacent?
+				// will Move Make Other Ant Adjacent?
 				int absDistX=Math.abs(meX-otherAntX);
 				int absDistY=Math.abs(meY-otherAntX);
 				absDistX = (meX<otherAntX)? absDistX-moveX : absDistX+moveX;
@@ -385,7 +396,6 @@ public class AIprocessor163969 extends AIprocessor
 			board[13][7] = DOORUSED;
 			meX=7; meY=12;
 		}
-		updateMe(direction);
 	}
 	
 	//DEBUG ONLY --------------------------------------------------------------
@@ -449,6 +459,7 @@ public class AIprocessor163969 extends AIprocessor
 	{
 		Field[][] fields =  gameboard.getFields();
 
+		System.out.println("\n---- turn " + turn++ +"--------");
 		printFields(fields); //DEBUG ONLY -------------------------------------
 
 		//reset destination information, "direction" variable remembers the last state
@@ -462,18 +473,7 @@ public class AIprocessor163969 extends AIprocessor
 			
 			clearBoard();
 			markDoorICameThroughAndPlaceMe(direction);
-			
-			boardHasUnseen = true;
-			
-			boardHasUneaten    = false;
-			foodInFields       = false;
-			
-			otherAntInField    = false;
-			otherAntIsAdjacent = false;
-			avoidOtherAnt      = false;
-			otherAntX = 99;
-			otherAntY = 99;
-			
+
 			sendMove(direction);
 			return;
 		}
