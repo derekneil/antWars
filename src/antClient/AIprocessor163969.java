@@ -61,7 +61,8 @@ public class AIprocessor163969 extends AIprocessor
 	private final int WALL = 1;
 	private final int DOOR = 2;
 	private final int DOORUSED = 3;
-	private final int FOOD = 4;
+	private final int DOOROPEN = 4;
+	private final int FOOD = 5;
 	private final int OTHERANT = 8;
 	private final int ME = 9;
 	private final int boardSize = 11;
@@ -102,6 +103,11 @@ public class AIprocessor163969 extends AIprocessor
 	 * update meX and meY coordinates based on move being made
 	 */
 	private void updateMe(String move) {
+		//DEBUG ONLY --------------------------------------------------
+		System.out.println("move: "+move);
+		System.out.println("moved from destX:"+destX+" destY:"+destY);
+		System.out.println("moved from meX:"+meX+" meY:"+meY);
+		
 		// remember, meX and meY are indexes into 2D array
 		// going N (up) means decrement meY
 		// going S (down) means increment meY
@@ -110,6 +116,9 @@ public class AIprocessor163969 extends AIprocessor
 		else if (move.equals("S")) { meY++; }
 		else if (move.equals("W")) { meX--; }
 		direction = move;
+		
+		//DEBUG ONLY --------------------------------------------------
+		System.out.println("moved to meX:"+meX+" meY:"+meY);
 	}
 
 	/** 
@@ -156,6 +165,8 @@ public class AIprocessor163969 extends AIprocessor
 							distToDestY = absDistToY;
 							destX       = x;
 							destY       = y;
+							//DEBUG ONLY --------------------------------------------------
+							System.out.println("OTHERANT destX:"+destX+" destY:"+destY);
 							
 						}
 						else if (absDistToXY<3) {
@@ -173,23 +184,33 @@ public class AIprocessor163969 extends AIprocessor
 							distToDestY = absDistToY;
 							destX       = x;
 							destY       = y;
+							//DEBUG ONLY --------------------------------------------------
+							System.out.println("FOOD destX:"+destX+" destY:"+destY);
 						}
 					}
 				}
 				
 				//walls, and doors are already well defined
-				if (content == DOOR) { 
-					if (absDistToXY==0) {
-						inDoorway = true;
-						//we can't see anything, and we're about to exit the door and reset the board
-						return; 
+				if (content == DOOR) {
+					if (board[x][y]!=DOORUSED) {
+						if (fields[j][i].isDoorOpen()) {
+							content = DOOROPEN;
+						}
+						if (absDistToXY==0) {
+							inDoorway = true;
+							content = ME;
+							//DEBUG ONLY --------------------------------------------------
+							System.out.println("inDoorway");
+						}
 					}
 				}
 				else if (absDistToXY == 0) {
 					content = ME;
 					int lastContent = board[x][y];
 					if (lastContent == FOOD) {
-						foodEaten++;   //TODO double check this actually works
+						foodEaten++;
+						//DEBUG ONLY --------------------------------------------------
+						System.out.println("foodEaten++ == "+foodEaten);
 					}
 				}
 				board[x][y] = content;
@@ -238,6 +259,8 @@ public class AIprocessor163969 extends AIprocessor
 						distToDestY = absDistToY;
 						destX       = x;
 						destY       = y;
+						//DEBUG ONLY --------------------------------------------------
+						System.out.println("UNKNOWN || FOOD destX:"+destX+" destY:"+destY);
 					}
 				}
 			}
@@ -250,16 +273,16 @@ public class AIprocessor163969 extends AIprocessor
 	/**
 	 * set destination as closest door we didn't enter through
 	 */
-	int doorLoc = Math.max(boardBuffer-1, 0);
-	int doorLoc2 = boardSize + boardBuffer;
 	private void findClosestDoor(final int target) {
+		final int doorLoc = Math.max(boardBuffer-1, 0);
+		final int doorLoc2 = boardSize + boardBuffer;
 		int possibleDoors[][] = { 	{ board[boardCenter][doorLoc2], boardCenter, doorLoc2 }, 
 									{ board[doorLoc][boardCenter],  doorLoc,  boardCenter }, 
 									{ board[boardCenter][doorLoc],  boardCenter,  doorLoc }, 
 									{ board[doorLoc2][boardCenter], doorLoc2, boardCenter } };
 
 		for (int i=0; i<possibleDoors.length; i++) {
-			if (possibleDoors[i][0] == target) {
+			if (possibleDoors[i][0] == target || (target==DOOR)&&(DOOROPEN==possibleDoors[i][0]) ) {
 				if (target==UNKNOWN) { boardHasUnseen = true; }
 				int x = possibleDoors[i][1];
 				int y = possibleDoors[i][2];
@@ -271,6 +294,8 @@ public class AIprocessor163969 extends AIprocessor
 					distToDestY = absDistToY;
 					destX       = x;
 					destY       = y;
+					//DEBUG ONLY --------------------------------------------------
+					System.out.println("UNKNOWN || DOOR destX:"+destX+" destY:"+destY);
 				}
 			}
 		}
@@ -344,6 +369,8 @@ public class AIprocessor163969 extends AIprocessor
 			//are there walls in the way?
 			if( gameboard.isMoveable(centerX+moveX, centerY+moveY)) {
 				goodMove = true;
+				//DEBUG ONLY --------------------------------------------------
+				System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY);
 			}
 			else {
 				//DEBUG ONLY --------------------------------------------------
@@ -359,6 +386,12 @@ public class AIprocessor163969 extends AIprocessor
 				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
 				if (absDistX+absDistY < 2) {
 					goodMove = false;
+					//DEBUG ONLY --------------------------------------------------
+					System.out.println("avoidOtherAnt goodMove = false");
+				}
+				else {
+					//DEBUG ONLY --------------------------------------------------
+					System.out.println("avoidOtherAnt goodMove = true");
 				}
 			}
 
@@ -368,6 +401,9 @@ public class AIprocessor163969 extends AIprocessor
 		if(moveX ==  1) nextMove = "E";
 		if(moveY ==  1) nextMove = "S";
 		if(moveX == -1) nextMove = "W";
+		
+		//DEBUG ONLY --------------------------------------------------
+		System.out.println("nextMove: "+nextMove);
 		
 		return nextMove;
 	}
@@ -387,8 +423,8 @@ public class AIprocessor163969 extends AIprocessor
 	 * @param direction
 	 */
 	private void markDoorICameThroughAndPlaceMe(String direction) {
-		int doorLoc = Math.max(boardBuffer-1, 0);
-		int doorLoc2 = boardSize + boardBuffer;
+		final int doorLoc = Math.max(boardBuffer-1, 0);
+		final int doorLoc2 = boardSize + boardBuffer;
 		if (direction.equals("N")) {
 			board[boardCenter][doorLoc2] = DOORUSED;
 			meX=boardCenter; meY=doorLoc2-1;
@@ -403,8 +439,10 @@ public class AIprocessor163969 extends AIprocessor
 		}
 		else if(direction.equals("W")) {
 			board[doorLoc2][boardCenter] = DOORUSED;
-			meX=boardCenter; meY=doorLoc2-1;
+			meX=doorLoc2-1; meY=boardCenter;
 		}
+		//DEBUG ONLY --------------------------------------------------
+		System.out.println("markDoorICameThroughAndPlaceMe meX:"+meX+" meY:"+meY);
 	}
 	
 	//DEBUG ONLY --------------------------------------------------------------
@@ -423,7 +461,7 @@ public class AIprocessor163969 extends AIprocessor
 				int ant = fields[j][i].getAntId();
 				if (ant !=-1) { 
 					out = "*";
-					if (ant != ME) { out = "A"; }
+					if (i!=2&&j!=2) { out = "A"; }
 				}
 				System.out.print(out);
 			}
@@ -442,6 +480,7 @@ public class AIprocessor163969 extends AIprocessor
 				else if (type == FOOD) { out = "F"; }
 				else if (type == WALL) { out = "X"; }
 				else if (type == DOOR) { out = "D"; }
+				else if (type == DOOROPEN) { out = "D"; }
 				else if (type == DOORUSED) { out = "U"; }
 				else if (type == OTHERANT) { out = "A"; }
 				else if (type == ME) { out = "*"; }
