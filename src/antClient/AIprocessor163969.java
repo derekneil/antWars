@@ -27,7 +27,7 @@ public class AIprocessor163969 extends AIprocessor
 		
 		/** Reset game state information */
 		clearBoard();
-		board[7][7] = ME;
+		board[8][8] = ME;
 		direction = "";
 		
 		boardHasUnseen = true;
@@ -38,8 +38,8 @@ public class AIprocessor163969 extends AIprocessor
 		inDoorway          = false;
 		
 		foodEaten = 0;
-		destX = meX = 7;
-		destY = meY = 7;
+		destX = meX = boardCenter;
+		destY = meY = boardCenter;
 		distToDest = distToDestX = distToDestY = 0;
 		
 		otherAntX = 99;
@@ -64,7 +64,12 @@ public class AIprocessor163969 extends AIprocessor
 	private final int FOOD = 4;
 	private final int OTHERANT = 8;
 	private final int ME = 9;
-	private int board[][] = new int[15][15];
+	private final int boardSize = 11;
+	private final int boardBuffer = 3;
+	private final int boardArraySize = boardSize+2*boardBuffer;
+	private final int boardCenter = (boardSize+2*boardBuffer)/2;
+	private final int fieldRadius = 2;
+	private int board[][] = new int[boardArraySize][boardArraySize];
 	private int turn = 1;
 	
 	private boolean boardHasUnseen = true;
@@ -83,8 +88,8 @@ public class AIprocessor163969 extends AIprocessor
 	private int foodEaten = 0;
 	private int estimatedFood = 0;
 
-	private int meX = 7;
-	private int meY = 7;
+	private int meX = boardCenter;
+	private int meY = boardCenter;
 	
 	private int destX = meX;
 	private int destY = meY;
@@ -113,9 +118,9 @@ public class AIprocessor163969 extends AIprocessor
 	 * update inDoorway, foodInFields, OtherAntInField and isOtherAntAdjacent
 	 */
 	private void updateBoard(Field[][] fields) {
-		int centerX = fields.length/2;
-		int centerY = fields[centerX].length/2;
-		int myId = fields[centerX][centerY].getAntId();
+		int fieldCenterX = fields.length/2;
+		int fieldCenterY = fields[fieldCenterX].length/2;
+		int myId = fields[fieldCenterX][fieldCenterY].getAntId();
 		inDoorway = false;
 		foodInFields = false;
 		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
@@ -125,7 +130,7 @@ public class AIprocessor163969 extends AIprocessor
 			for(int j=0; j<fields.length; j++) {
 				
 				int content = fields[j][i].getType();
-				int distToX = j-centerX, distToY = i-centerY;
+				int distToX = j-fieldCenterX, distToY = i-fieldCenterY;
 				int absDistToX = Math.abs(distToX), absDistToY = Math.abs(distToY);
 				int absDistToXY = absDistToX + absDistToY;
 				int x = meX+distToX;
@@ -203,8 +208,10 @@ public class AIprocessor163969 extends AIprocessor
 	 */
 	private void scanBoard() {
 		boardHasUneaten = boardHasUnseen = false;
-		for(int i=2; i<12; i++) { //scan within perimeter of walls and doors
-			for(int j=2; j<12; j++) { //XXX make this relative to arbitrary board size
+		int start = boardBuffer;
+		int end = boardBuffer + boardSize + 1;
+		for(int i=start; i<end; i++) { //scan within perimeter of walls and doors
+			for(int j=start; j<end; j++) {
 				
 				int content = board[j][i];
 				int distToX = j-meX, distToY = i-meY;
@@ -213,7 +220,7 @@ public class AIprocessor163969 extends AIprocessor
 				int x = meX+distToX;
 				int y = meY+distToY;
 				
-				if (absDistToX>2 && absDistToY>2) { //scan outside of field
+				if (absDistToX>fieldRadius && absDistToY>fieldRadius) { //scan outside of field
 					if(content == OTHERANT) {
 						board[j][i] = FLOOR;
 					}
@@ -245,11 +252,13 @@ public class AIprocessor163969 extends AIprocessor
 	/**
 	 * set destination as closest door we didn't enter through
 	 */
+	int doorLoc = Math.max(boardBuffer-1, 0);
+	int doorLoc2 = boardSize + boardBuffer;
 	private void findClosestDoor(final int target) {
-		int possibleDoors[][] = { 	{ board[7][13], 7, 13 }, 
-									{ board[1][7],  1,  7 }, 
-									{ board[7][1],  7,  1 }, 
-									{ board[13][7], 13, 7 } };
+		int possibleDoors[][] = { 	{ board[boardCenter][doorLoc2], boardCenter, doorLoc2 }, 
+									{ board[doorLoc][boardCenter],  doorLoc,  boardCenter }, 
+									{ board[boardCenter][doorLoc],  boardCenter,  doorLoc }, 
+									{ board[doorLoc2][boardCenter], doorLoc2, boardCenter } };
 
 		for (int i=0; i<possibleDoors.length; i++) {
 			if (possibleDoors[i][0] == target) {
@@ -379,22 +388,23 @@ public class AIprocessor163969 extends AIprocessor
 	 * @param direction
 	 */
 	private void markDoorICameThroughAndPlaceMe(String direction) {
-		// XXX make this relative to arbirary board size
+		int doorLoc = Math.max(boardBuffer-1, 0);
+		int doorLoc2 = boardSize + boardBuffer;
 		if (direction.equals("N")) {
-			board[7][13] = DOORUSED;
-			meX=7; meY=12;
+			board[boardCenter][doorLoc2] = DOORUSED;
+			meX=boardCenter; meY=doorLoc2-1;
 		}
 		else if(direction.equals("E")) {
-			board[1][7] = DOORUSED;
-			meX=2; meY=7;
+			board[doorLoc][boardCenter] = DOORUSED;
+			meX=doorLoc+1; meY=boardCenter;
 		}
 		else if(direction.equals("S")) {
-			board[7][1] = DOORUSED;
-			meX=7; meY=2;
+			board[boardCenter][doorLoc] = DOORUSED;
+			meX=boardCenter; meY=doorLoc+1;
 		}
 		else if(direction.equals("W")) {
-			board[13][7] = DOORUSED;
-			meX=7; meY=12;
+			board[doorLoc2][boardCenter] = DOORUSED;
+			meX=boardCenter; meY=doorLoc2-1;
 		}
 	}
 	
