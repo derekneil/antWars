@@ -131,7 +131,9 @@ public class AIprocessor163969 extends AIprocessor
 		otherAntInField = otherAntIsAdjacent = avoidOtherAnt = false;
 		
 		//clear location of otherAnt since scanBoard may not run for a while
-		board[otherAntX][otherAntY] = FLOOR;
+		if (otherAntX<99 && otherAntY<99) {
+			board[otherAntX][otherAntY] = FLOOR;
+		}
 		otherAntX = otherAntY = 99;
 		
 		for(int i=0; i<fields[0].length; i++) {
@@ -152,6 +154,7 @@ public class AIprocessor163969 extends AIprocessor
 						otherAntInField = true;
 						otherAntX = x;
 						otherAntY = y;
+						if (DEBUG) { System.out.println("OTHERANT otherAntX:"+otherAntX+" otherAntY:"+otherAntY); }
 						// |43234|
 						// |32123| //danger urgency
 						// |21*12| // eat anything in 1
@@ -356,7 +359,7 @@ public class AIprocessor163969 extends AIprocessor
 			//are there walls in the way?
 			if( gameboard.isMoveable(centerX+moveX, centerY+moveY)) {
 				goodMove = true;
-				if (DEBUG) { System.out.println("goodMove moveX:" + moveX + " moveY:" + moveY); }
+				if (DEBUG) { System.out.println("isMoveable moveX:" + moveX + " moveY:" + moveY); }
 			}
 			else {
 				if (DEBUG) { System.out.println("!isMoveable moveX:" + moveX + " moveY:" + moveY); }
@@ -366,9 +369,10 @@ public class AIprocessor163969 extends AIprocessor
 			if (goodMove && avoidOtherAnt) {
 				// will Move Make Other Ant Adjacent?
 				int absDistX=Math.abs(meX-otherAntX);
-				int absDistY=Math.abs(meY-otherAntX);
-				absDistX = (meX<otherAntX)? absDistX-moveX : absDistX+moveX;
-				absDistY = (meY<otherAntY)? absDistY-moveY : absDistY+moveY;
+				int absDistY=Math.abs(meY-otherAntY);
+				absDistX = (meX<otherAntX)? Math.abs(absDistX-moveX) : Math.abs(absDistX+moveX);
+				absDistY = (meY<otherAntY)? Math.abs(absDistY-moveY) : Math.abs(absDistY+moveY);
+				if (DEBUG) { System.out.println("avoidOtherAnt absDistX:"+absDistX+" absDistY:"+absDistY); }
 				if (absDistX+absDistY < 2) {
 					goodMove = false;
 					if (DEBUG) { System.out.println("avoidOtherAnt goodMove = false"); }
